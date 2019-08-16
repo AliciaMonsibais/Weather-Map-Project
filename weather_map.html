@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Map</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body {
+            margin: 1em;
+            padding: auto;
+            background: #2980B9;  /* fallback for old browsers */
+            background: -webkit-linear-gradient(to right, #FFFFFF, #6DD5FA, #2980B9);  /* Chrome 10-25, Safari 5.1-6 */
+            background: linear-gradient(to right, #FFFFFF, #6DD5FA, #2980B9); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+            background-image: url("img/weather.jpeg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+
+        }
+
+        .text-center {
+            color: #aab096;
+        }
+
+        .userInteraction {
+            padding: 1em;
+            width: 500px;
+            margin: auto;
+        }
+
+        .loading {
+            margin: auto;
+        }
+
+        .card-body{
+            width: 250px;
+            height: 450px;
+        }
+        .card{
+            background: #FFEFBA;  /* fallback for old browsers */
+            background: -webkit-linear-gradient(to right, #FFFFFF, #FFEFBA);  /* Chrome 10-25, Safari 5.1-6 */
+            background: linear-gradient(to right, #FFFFFF, #FFEFBA); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+        }
+        #weather {
+            padding: 2em;
+        }
+
+        #userAdd {
+            margin-bottom: 1em;
+        }
+
+        #map {
+            position: relative;
+            width: 85%;
+            height: 481px;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="text-center">Welcome to: <span id="location"> San Antonio, Texas</span></h1>
+<div id="weather">
+    <div id="weatherCards" class="row">
+        <img src = "img/loading.gif" class="loading" alt="loading">
+    </div>
+</div>
+
+
+<div class="userInteraction">
+    <h5 class="text-center">Where would you like to go?</h5>
+    <div class="input-group">
+        <input id="userAdd" type="text" class ="form-control" placeholder="Enter location here" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+        </div>
+        <button type="button" id="uInput" class="btn btn-primary btn-info">I Want to Go To There</button>
+</div>
+
+<div id='map'></div>
+
+
+
+<!--js key and query link-->
+<script src="js/keys.js"></script>
+<script src="js/jquery-2.x-git.js"></script>
+<!--mapbox utilities and JS-->
+<script src="js/mapbox-utils.js"></script>
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.0/mapbox-gl.js'></script>
+<!--bootstrap-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<!--custom JS-->
+<script>
+
+    "use strict";
+    var darkSkyUrl = 'https://cors-anywhere.herokuapp.com/https://api.darksky.net/forecast/';
+    var darkSkyKey = darkSkyKey;
+    var lat = 29.4241;
+    var lng = -98.4936;
+
+    $.get(darkSkyUrl + darkSkyKey + "/" + lat + "," + lng).done(function(data) {
+        console.log(data);
+        var dateObject = new Date(data.currently.time * 1000);
+        console.log(dateObject);
+
+    });
+
+    var changeLocation = document.getElementById('location');
+
+    function dailyForecast(data) {
+        var html = '';
+        console.log(data);
+
+        data.forEach(function(day){
+            data.length = 3;
+            html += '<div class="col-4">';
+                html += '<div class="card m-3">';
+                    html += '<div class="card-body">';
+                        html += '<p class="date">' + (new Date(day.time * 1000).toDateString()) + '</p>';
+                        html += '<p class="highTemp">' + 'High: ' + day.temperatureHigh.toFixed(0) + '&#8457;' + '</p>';
+                        html += '<p class="lowTemp">' + 'Low: ' + day.temperatureLow.toFixed(0) + '&#8457;' + '</p>';
+                        html += '<div id="climacons">' + '<img class="weatherIcons"' + ' ' + 'src="' + 'img/' + 'climacons/' + day.icon + '.svg' + '"' + 'alt="' + day.icon + '"' +'>' + '</div>';
+                        html += '<div class="summary">' + '<p>' + day.summary + '</p>' + '</div>';
+                        html += '<div class = "humidity">' + '<p>' + 'Humidity: ' + day.humidity + '</p>' + '</div>';
+                        html += '<div class = "wind">' + '<p>' + 'Wind: ' + day.windSpeed + '</p>' + '</div>';
+                        html += '<div class = "pressure">' + '<p>' + 'Pressure: ' + day.pressure.toFixed(1) + '</p>' + '</div>';
+                    html += '</div>';
+                html += '</div>';
+            html += '</div>';
+        });
+        return html;
+    }
+    $.get(darkSkyUrl + darkSkyKey + "/" + lat + "," + lng).done(function(data){
+        $('#weatherCards').html(dailyForecast(data.daily.data));
+    }) .fail(function() {
+        console.log("NOPE");
+    });
+
+
+    mapboxgl.accessToken = mapboxToken;
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [lng, lat],
+        zoom: 8
+    });
+    console.log(map);
+
+
+    // // Add zoom and rotation controls to the map.
+    map.addControl(new mapboxgl.NavigationControl());
+
+    // user input for map coordinates
+    var goThere = document.getElementById('uInput');
+    goThere.addEventListener('click' ,function (event) {
+        geocode(userAdd.value,mapboxToken).then(function (result) {
+            changeLocation.innerText = userAdd.value;
+            $('#navLocation').text(userAdd.value);
+            map.setCenter(result);
+            map.setZoom(8);
+            // new mapboxgl.Marker()
+                marker.setLngLat(result)
+                .addTo(map);
+            var newLocation = (result[1] + ',' + result[0]);
+            $.get(darkSkyUrl + darkSkyKey + "/" + newLocation).done(function(data){
+                $('#weatherCards').html(dailyForecast(data.daily.data));
+            }).fail(function(){
+                console.log("ERROR!");
+            });
+        });
+    }, false);
+
+
+
+    //draggable marker
+    var marker = new mapboxgl.Marker({
+        draggable: true
+    })
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+    //populates new location and weather when dragging marker
+    function onDragEnd(){
+        var lngLat = marker.getLngLat();
+        var lng1 = lngLat.lng;
+        var lat1 = lngLat.lat;
+        reverseGeocode({lng: lng1, lat: lat1}, mapboxToken).then(function(results) {
+            // console.log(results);
+            var locArray = results.split(", ");
+            console.log(locArray);
+            var removeZip = (locArray[locArray.length - 2]).split(" ");
+            removeZip.pop();
+            if ((locArray[locArray.length - 1]) == "United States") {
+                $('#location').text(locArray[locArray.length - 3] + ', ' + removeZip.join(' '));
+            } else {
+                $('#location').text(locArray[locArray.length - 3] + ', ' +locArray[locArray.length - 2] + ', ' + locArray[locArray.length - 1]);
+            }
+        });
+        var dragSearch=("/" + lngLat.lat + "," + lngLat.lng);
+        $.get(darkSkyUrl + darkSkyKey + dragSearch).done(function(data){
+            $('#weatherCards').html(dailyForecast(data.daily.data));
+        }) .fail(function() {
+            console.log("NOPE");
+        });
+    }
+    marker.on('dragend', onDragEnd);
+    //adding geolocator from mapbox tools
+    map.addControl(new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true,
+            zoom: 15
+        },
+        trackUserLocation: true
+    }));
+
+    //if you go to Mapbox API lesson, remember to go to reverse geocoding and geocoding. Functions already exist there.
+</script>
+
+</body>
+</html>
